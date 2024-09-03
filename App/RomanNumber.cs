@@ -10,18 +10,35 @@ namespace App
     {
         private readonly int _value = Value;
         public int Value => _value;
+
+
         public static RomanNumber Parse(String input)
+        {
+           int value = 0;
+            int prevDigit = 0;
+            foreach (char c in input.Reverse())
+            {
+                int digit = DigitalValue(c.ToString());
+                value += digit >= prevDigit ? digit : -digit;
+                prevDigit = digit;
+            }
+            return new(value);
+        }
+
+        public static int DigitalValue(String input)
         {
             return input switch
             {
-                "I" => new(1),
-                "V" => new(5),
-                "X" => new(10),
-                "L" => new(50),
-                "C" => new(100),
-                "D" => new(500),
-                "M" => new(1000),
-                _ => throw new ArgumentException("Invalid Roman numeral")
+                "N" => 0,
+                "I" => 1,
+                "V" => 5,
+                "X" => 10,
+                "L" => 50,
+                "C" => 100,
+                "D" => 500,
+                 _  => 1000
+                //"M" => new(1000),
+                //_ => throw new ArgumentException("Invalid Roman numeral")
             };
 
         }
