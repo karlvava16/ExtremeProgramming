@@ -11,6 +11,7 @@
             int value = 0;
             int prevDigit = 0;
             int pos = input.Length;
+            List<String> errors = new();
             foreach (char c in input.Reverse())
             {
                 pos -= 1;
@@ -21,13 +22,21 @@
                 }
                 catch
                 {
-                    throw new FormatException($"Invalid symbol '{c}' in position {pos}");
+                    errors.Add($"Invalid symbol '{c}' in position {pos}");
+                    continue;
                 }
                 value += digit >= prevDigit ? digit : -digit;
                 prevDigit = digit;
             }
-            return new(value);
+
+            if (errors.Any())
+            {
+                throw new FormatException(string.Join("; ", errors));
+            }
+
+            return new RomanNumber(value);
         }
+
 
         public static int DigitalValue(String digit)
         {

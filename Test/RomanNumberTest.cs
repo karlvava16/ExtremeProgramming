@@ -51,27 +51,30 @@ namespace Test
                 );
             }
 
-            Dictionary<String, Object[]> exTestCases = new Dictionary<String, Object[]>()
+            Dictionary<string, (char, int)[]> exTestCases = new()
             {
-                {"W", ['W', 0]},
-                {"Q", ['Q', 0]},
-                {"s", ['s', 0]},
-                {"Xd", ['d', 1]},
+                {"W", new[] {('W', 0)}},
+                {"Q", new[] {('Q', 0)}},
+                {"s", new[] {('s', 0)}},
+                {"Xd", new[] {('d', 1)}},
+                {"SWXF", new[] {('S', 0), ('W', 1), ('F', 3)}},
+                {"XXFX", new[] {('F', 2)}},
+                {"VVVFX", new[] {('F', 3)}},
+                {"IVF", new[] {('F', 2)}},
             };
 
-           foreach(var testCase in exTestCases)
+            foreach (var testCase in exTestCases)
             {
                 var ex = Assert.ThrowsException<FormatException>(
-               () => RomanNumber.Parse(testCase.Key),
-               $"{nameof(FormatException)} Parse '{testCase.Key}' must throw");
+                    () => RomanNumber.Parse(testCase.Key),
+                    $"{nameof(FormatException)} Parse '{testCase.Key}' must throw");
 
-                Assert.IsTrue(
-                ex.Message.Contains(
-                    $"Invalid symbol '{testCase.Value[0]}' in position {testCase.Value[1]}"
-                ),
-                $"{nameof(FormatException)} must contain data about symbol and its position"
-                + $"testCase: '{testCase.Key}', ex.Message: '{ex.Message}'"
-                );
+                foreach (var (symbol, position) in testCase.Value)
+                {
+                    Assert.IsTrue(ex.Message.Contains($"Invalid symbol '{symbol}' in position {position}"),
+                        $"{nameof(FormatException)} must contain data about symbol '{symbol}' at position {position}. " +
+                        $"TestCase: '{testCase.Key}', ex.Message: '{ex.Message}'");
+                }
             }
         }
 
