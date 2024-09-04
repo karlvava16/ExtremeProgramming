@@ -24,7 +24,20 @@ namespace Test
             { "M",      1000 },
             { "MC",     1100 },
             { "MCM",    1900 },
-            { "MM",     2000 }
+            { "MM",     2000 },
+
+            //Not optimal
+            { "XXXX",   40 },
+            { "LL",     100 },
+            { "CCCC",   400 },
+            { "DDD",    1500 },
+            
+            // Incorrect
+            //{ "IC",     -1 },
+            //{ "IL",     -1 },
+            //{ "XD",     -1 },
+            //{ "VVVV",   -1 },
+            //{ "MMMM",   -1 }
         };
 
             foreach (var testCase in testCases)
@@ -35,6 +48,29 @@ namespace Test
                     ,
                     rn.Value,
                     $"{testCase.Key} parsing failed. Expected {testCase.Value}, got {rn.Value}."
+                );
+            }
+
+            Dictionary<String, Object[]> exTestCases = new Dictionary<String, Object[]>()
+            {
+                {"W", ['W', 0]},
+                {"Q", ['Q', 0]},
+                {"s", ['s', 0]},
+                {"Xd", ['d', 1]},
+            };
+
+           foreach(var testCase in exTestCases)
+            {
+                var ex = Assert.ThrowsException<FormatException>(
+               () => RomanNumber.Parse(testCase.Key),
+               $"{nameof(FormatException)} Parse '{testCase.Key}' must throw");
+
+                Assert.IsTrue(
+                ex.Message.Contains(
+                    $"Invalid symbol '{testCase.Value[0]}' in position {testCase.Value[1]}"
+                ),
+                $"{nameof(FormatException)} must contain data about symbol and its position"
+                + $"testCase: '{testCase.Key}', ex.Message: '{ex.Message}'"
                 );
             }
         }
@@ -51,12 +87,11 @@ namespace Test
             { "L", 50 },
             { "C", 100 },
             { "D", 500 },
-            { "M", 1000 }
+            { "M", 1000 },
         };
 
             foreach (var kvp in romanToInt)
             {
-
 
                 Assert.AreEqual(
                     kvp.Value,
@@ -64,15 +99,60 @@ namespace Test
                     $"{kvp.Value} parsing failed. Expected {kvp}, got {kvp.Value}."
                 );
             }
+
+
+            Random random = new Random();
+            for (int i = 0; i < 100; i++)
+            {
+                String invalidDigit = ((char)random.Next(256)).ToString();
+
+
+                if (romanToInt.ContainsKey(invalidDigit))
+                {
+                    i--;
+                    continue;
+                }
+
+
+                ArgumentException ex = Assert.ThrowsException<ArgumentException>(
+                () => RomanNumber.DigitalValue(invalidDigit),
+                $"ArgumentException erxpected for digit = '{invalidDigit}'"
+                 );
+
+                // вимагатимемо від винятку
+                // повідомлення, що
+                // містить назву аргументу (digit)
+                // містить значення аргументу, що призвело до винятку
+                // назву класу та метододу, що викинуло виняток
+
+                Assert.IsFalse(
+                    String.IsNullOrEmpty(ex.Message),
+                    "ArgumentException must have a message"
+                    );
+                Assert.IsTrue(
+                    ex.Message.Contains($"'digit' has invalid value '{invalidDigit}'"),
+                    $"ArgumentException message must contain <'digit' has invalid value '{invalidDigit}'>"
+                    );
+                Assert.IsTrue(
+                    ex.Message.Contains(nameof(RomanNumber)) &&
+                    ex.Message.Contains(nameof(RomanNumber.DigitalValue)),
+                    $"ArgumentException message must contain '{nameof(RomanNumber)}' and '{nameof(RomanNumber.DigitalValue)}'"
+                    );
+            }
         }
 
     }
-
-    /*
-    Д.З. збільшити кількість тестових кейсів для ParsTest
-    Використоувати як оптимальні, так і неоптимальні форми чисел.
-    Перевірити працездатність шляхом включення неправильних кейсів
-     
-     
-     */
 }
+
+
+/*
+    Д.З. збільшити кількість тестових кейсів виняткових ситуацій ParsTest
+   з різною довжиною послідовностей.
+
+    * забезпечити виведннення першої позиції помилки(за наявності кількох)
+     наприклад, парс("SWXF") має вивести помилку на позиції 0, літер 'S'
+     
+    ** за наявності кількох помилок вивести усі неправильні символи та їх позиції
+     та їх позиції парс('SWXF') -> 'S'(0), 'S'(1), 'F'(3)
+     
+*/
