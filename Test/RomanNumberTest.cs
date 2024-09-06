@@ -14,8 +14,9 @@ namespace Test
             { "I",      1 },
             { "II",     2 },
             { "III",    3 },
-            { "IIII",   4 },
+            //{ "IIII",   4 },
             { "IV",     4 },
+            { "V",      5 },
             { "VI",     6 },
             { "VII",    7 },
             { "VIII",   8 },
@@ -27,10 +28,10 @@ namespace Test
             { "MM",     2000 },
 
             //Not optimal
-            { "XXXX",   40 },
-            { "LL",     100 },
-            { "CCCC",   400 },
-            { "DDD",    1500 },
+            //{ "XXXX",   40 },
+            //{ "LL",     100 },
+            //{ "CCCC",   400 },
+            //{ "DDD",    1500 },
             
             // Incorrect
             //{ "IC",     -1 },
@@ -76,7 +77,68 @@ namespace Test
                         $"TestCase: '{testCase.Key}', ex.Message: '{ex.Message}'");
                 }
             }
+
+
+
+
+            Dictionary<String, Object[]> exTestCases2 = new()
+            {
+                { "IM",  ['I', 'M', 0] },
+                { "XIM", ['I', 'M', 1] },
+                { "IMX", ['I', 'M', 0] },
+                { "XMD", ['X', 'M', 0] },
+                { "XID", ['I', 'D', 1] },
+                { "ID", ['I', 'D', 0] },
+                { "XM", ['X', 'M', 0] },
+
+
+            };
+            foreach (var testCase in exTestCases2)
+            {
+                var ex = Assert.ThrowsException<FormatException>(
+                    () => RomanNumber.Parse(testCase.Key),
+                    $"Parse '{testCase.Key}' must throw FormatException"
+                );
+                Assert.IsTrue(
+                    ex.Message.Contains(
+                        $"Invalid order '{testCase.Value[0]}' before '{testCase.Value[1]}' in position {testCase.Value[2]}"
+                    ),
+                    "FormatException must contain data about mis-ordered symbols and its position"
+                    + $"testCase: '{testCase.Key}', ex.Message: '{ex.Message}'"
+                );
+            }
+
+            Dictionary<string, (char, int)[]> exTestCases3 = new()
+            {
+              
+                 // Invalid repeated symbols (VV, LL, LC, VX, ...)
+                { "XVV", new[] { ('V', 2) }},
+                { "LL", new[] { ('L', 1) }},
+                { "LC", new[] { ('C', 1) }},
+                { "VX", new[] { ('X', 1) }},
+                { "MM", new[] { ('M', 1) } },
+
+            };
+
+            foreach (var testCase in exTestCases3)
+            {
+                var ex = Assert.ThrowsException<FormatException>(
+                    () => RomanNumber.Parse(testCase.Key),
+                    $"{nameof(FormatException)} Parse '{testCase.Key}' must throw");
+
+                foreach (var (symbol, position) in testCase.Value)
+                {
+                    Assert.IsTrue(ex.Message.Contains($"Invalid symbol '{symbol}' in position {position}"),
+                        $"{nameof(FormatException)} must contain data about symbol '{symbol}' at position {position}. " +
+                        $"TestCase: '{testCase.Key}', ex.Message: '{ex.Message}'");
+                }
+            }
+
         }
+
+        Dictionary<int, String> _digitValues = new Dictionary<int, String>();
+       
+
 
         [TestMethod]
         public void DigitalValueTest()
@@ -144,18 +206,39 @@ namespace Test
             }
         }
 
+        [TestMethod]
+        public void ToStringTest()
+        {
+            Dictionary<int, string> testCases = new Dictionary<int, string>()
+    {
+        { 1, "I" },
+        { 2, "II"},
+        { 3343, "MMMCCCXLIII" },
+        { 4, "IV" },
+        { 44, "XLIV" },
+        { 9, "IX" },
+        { 90, "XC" },
+        { 1400, "MCD" },
+        { 900, "CM" },
+        { 990, "CMXC" },
+
+
+    };
+            _digitValues.Keys.ToList().ForEach(k => testCases.Add(k, _digitValues[k]));
+            foreach (var testCase in testCases)
+            {
+                Assert.AreEqual(
+                    new RomanNumber(testCase.Key).ToString(),
+                    testCase.Value,
+                    $"ToString({testCase.Key})--> {testCase.Value}");
+            }
+        }
     }
 }
 
 
-/*
-    Д.З. збільшити кількість тестових кейсів виняткових ситуацій ParsTest
-   з різною довжиною послідовностей.
-
-    * забезпечити виведннення першої позиції помилки(за наявності кількох)
-     наприклад, парс("SWXF") має вивести помилку на позиції 0, літер 'S'
-     
-    ** за наявності кількох помилок вивести усі неправильні символи та їх позиції
-     та їх позиції парс('SWXF') -> 'S'(0), 'S'(1), 'F'(3)
-     
-*/
+/* Д.З. Збільшити кількість тестових кейсів виняткових ситуацій ParseTest
+ * які відстежують неправильне розташування символів (IM, ID, XM, ...)
+ * у різних позиціях
+ * * додати кейси з іншими неправильними комбінаціями (VV, LL, LC, VX, ...)
+ *    внести зміни в алгоритм парсингу */
