@@ -5,7 +5,7 @@ namespace App
     public record RomanNumber(int Value)
     {
         private readonly int _value = Value; // TODO: Refactoring - exclude
-        public int Value => _value;
+        public int Value { get => _value; init => _value = value; }
 
 
         public static RomanNumber Parse(String input)
@@ -62,6 +62,19 @@ namespace App
             };
 
         }
+
+        public RomanNumber Plus(RomanNumber other)
+        {
+            return this with { Value = Value + other.Value };
+        }
+        public RomanNumber Plus(string other)
+        {
+            return this with { Value = Value + Parse(other).Value };
+        }
+        /*ДЗ Скласти тести, що перевіряють роботу метода Plus
+         * з використанням римських записів чисел, наприклад
+         * IV + VI = X
+        */
 
         public override string? ToString()
         {

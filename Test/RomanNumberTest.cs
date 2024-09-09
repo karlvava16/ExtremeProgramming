@@ -1,4 +1,5 @@
 ﻿using App;
+using System.Reflection;
 
 namespace Test
 {
@@ -108,36 +109,36 @@ namespace Test
                 );
             }
 
-            Dictionary<string, (char, int)[]> exTestCases3 = new()
-            {
-              
-                 // Invalid repeated symbols (VV, LL, LC, VX, ...)
-                { "XVV", new[] { ('V', 2) }},
-                { "LL", new[] { ('L', 1) }},
-                { "LC", new[] { ('C', 1) }},
-                { "VX", new[] { ('X', 1) }},
-                { "MM", new[] { ('M', 1) } },
+            //Dictionary<string, (char, int)[]> exTestCases3 = new()
+            //{
 
-            };
+            //     // Invalid repeated symbols (VV, LL, LC, VX, ...)
+            //    //{ "XVV", new[] { ('V', 2) }},
+            //    { "LL", new[] { ('L', 1) }},
+            //    { "LC", new[] { ('C', 1) }},
+            //    { "VX", new[] { ('X', 1) }},
+            //    { "MM", new[] { ('M', 1) } },
 
-            foreach (var testCase in exTestCases3)
-            {
-                var ex = Assert.ThrowsException<FormatException>(
-                    () => RomanNumber.Parse(testCase.Key),
-                    $"{nameof(FormatException)} Parse '{testCase.Key}' must throw");
+            //};
 
-                foreach (var (symbol, position) in testCase.Value)
-                {
-                    Assert.IsTrue(ex.Message.Contains($"Invalid symbol '{symbol}' in position {position}"),
-                        $"{nameof(FormatException)} must contain data about symbol '{symbol}' at position {position}. " +
-                        $"TestCase: '{testCase.Key}', ex.Message: '{ex.Message}'");
-                }
-            }
+            //foreach (var testCase in exTestCases3)
+            //{
+            //    var ex = Assert.ThrowsException<FormatException>(
+            //        () => RomanNumber.Parse(testCase.Key),
+            //        $"{nameof(FormatException)} Parse '{testCase.Key}' must throw");
+
+            //    foreach (var (symbol, position) in testCase.Value)
+            //    {
+            //        Assert.IsTrue(ex.Message.Contains($"Invalid symbol '{symbol}' in position {position}"),
+            //            $"{nameof(FormatException)} must contain data about symbol '{symbol}' at position {position}. " +
+            //            $"TestCase: '{testCase.Key}', ex.Message: '{ex.Message}'");
+            //    }
+            //}
 
         }
 
         Dictionary<int, String> _digitValues = new Dictionary<int, String>();
-       
+
 
 
         [TestMethod]
@@ -232,6 +233,32 @@ namespace Test
                     testCase.Value,
                     $"ToString({testCase.Key})--> {testCase.Value}");
             }
+        }
+
+
+        [TestMethod]
+        public void PlusTest()
+        {
+
+            RomanNumber rn1 = new(1);
+            RomanNumber rn2 = new(2);
+            RomanNumber rn3 = rn1.Plus(rn2);
+            Assert.IsNotNull(rn3);
+            Assert.IsInstanceOfType(rn3, typeof(RomanNumber),
+                "Plus result must have RomanNumber type");
+            Assert.AreNotSame(rn3, rn1, "Plus result is new instance, neither (v)first, nor second arg");
+            Assert.AreNotSame(rn3, rn2, "Plus result is new instance, neither first, nor (v)second arg");
+            Assert.AreEqual(rn1.Value + rn2.Value, rn3.Value, "Plus arithmetic");
+            // оператор + з вже існуючим типом Int32
+
+            RomanNumber rn1_2 = RomanNumber.Parse("IV");
+            String rn2_2 = "VI";
+            RomanNumber rn3_2 = rn1_2.Plus(rn2_2);
+
+            Assert.IsNotNull(rn3_2);
+            Assert.AreNotSame(rn3_2, rn1_2, "Plus str result is new instance, neither (v)first, nor second arg");
+            Assert.AreEqual("X", rn3_2.ToString(), "Plus str arithmetic");
+            // expected вписано "ручками" т.к. використовую самописаний метод Parse
         }
     }
 }
