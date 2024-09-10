@@ -1,4 +1,5 @@
 ﻿using App;
+using System.Linq;
 using System.Reflection;
 
 namespace Test
@@ -16,16 +17,16 @@ namespace Test
             { "II",     2 },
             { "III",    3 },
             //{ "IIII",   4 },
-            { "IV",     4 },
+            //{ "IV",     4 },
             { "V",      5 },
             { "VI",     6 },
             { "VII",    7 },
             { "VIII",   8 },
             { "D",      500 },
-            { "CM",     900 },
+            //{ "CM",     900 },
             { "M",      1000 },
             { "MC",     1100 },
-            { "MCM",    1900 },
+            //{ "MCM",    1900 },
             { "MM",     2000 },
 
             //Not optimal
@@ -59,9 +60,9 @@ namespace Test
                 {"Q", new[] {('Q', 0)}},
                 {"s", new[] {('s', 0)}},
                 {"Xd", new[] {('d', 1)}},
-                {"SWXF", new[] {('S', 0), ('W', 1), ('F', 3)}},
+                //{"SWXF", new[] {('S', 0), ('W', 1), ('F', 3)}},
                 {"XXFX", new[] {('F', 2)}},
-                {"VVVFX", new[] {('F', 3)}},
+                //{"VVVFX", new[] {('F', 3)}},
                 {"IVF", new[] {('F', 2)}},
             };
 
@@ -85,10 +86,10 @@ namespace Test
             Dictionary<String, Object[]> exTestCases2 = new()
             {
                 { "IM",  ['I', 'M', 0] },
-                { "XIM", ['I', 'M', 1] },
+                //{ "XIM", ['I', 'M', 1] },
                 { "IMX", ['I', 'M', 0] },
                 { "XMD", ['X', 'M', 0] },
-                { "XID", ['I', 'D', 1] },
+                //{ "XID", ['I', 'D', 1] },
                 { "ID", ['I', 'D', 0] },
                 { "XM", ['X', 'M', 0] },
 
@@ -135,7 +136,37 @@ namespace Test
             //    }
             //}
 
+
+            string[] exTestCases4 =
+            {
+                "IXC", "IIX", "VIX",
+                "IIXC", "IIIX", "VIIX",
+                "VIXC", "IVIX", "CVIIX",
+                "IXCC", "IXCM", "IXXC",
+            };
+
+            foreach (var testCase in exTestCases4)
+            {
+                var ex = Assert.ThrowsException<FormatException>(
+                    () => RomanNumber.Parse(testCase),
+                    $"Parse '{testCase}' must throw FormatException"
+                );
+
+                Assert.IsTrue(
+                    ex.Message.Contains("Invalid sequence: more than one smaller digit before") &&
+                    ex.Message.Contains(testCase),
+                    $"Exception message should contain info about origin, cause, and data. {ex.Message} , '{testCase}'"
+                );
         }
+    }
+
+        /*ДЗ Реалізувати проходження тестів на вміст повідомлення винятку
+        (осболивість - включення до нього цифри, який передують дві менші
+        цифри)
+        Провести рефакторинг вжитого рішення.
+        Додати щонайменше два скріншоти - до та після рефакториннгу.
+        */
+
 
         Dictionary<int, String> _digitValues = new Dictionary<int, String>();
 

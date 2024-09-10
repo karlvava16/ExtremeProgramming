@@ -11,9 +11,13 @@ namespace App
         public static RomanNumber Parse(String input)
         {
             int value = 0;
-            int prevDigit = 0;  // TODO: rename to  ~rightDigit
+            int prevDigit = 0;
             int pos = input.Length;
+            int maxDigit = 0;
+            bool isLess = false;
+
             List<String> errors = new();
+
             foreach (char c in input.Reverse())
             {
                 pos -= 1;
@@ -27,11 +31,33 @@ namespace App
                     errors.Add($"Invalid symbol '{c}' in position {pos}");
                     continue;
                 }
+
                 if (digit != 0 && prevDigit / digit > 10)
                 {
                     errors.Add($"Invalid order '{c}' before '{input[pos + 1]}' in position {pos}");
                 }
-                
+
+                //// Detect invalid sequences with more than one less digit before a larger one
+                //if (digit < prevDigit && prevDigit < maxDigit)
+                //{
+                //    errors.Add($"Invalid sequence: more than one smaller digit ('{input[pos]}') precedes larger digit '{input[pos + 1]}' at position {pos}");
+                //    continue ;
+                //}
+
+                if (digit < maxDigit)
+                {
+                    if (isLess)
+                    {
+                        throw new FormatException($"Invalid sequence: more than one smaller digit before '{input[pos + 1]}' '{input}'");
+
+                    }
+                    isLess = true;
+                }
+                else
+                {
+                    maxDigit = digit;
+                    isLess = false;
+                }
 
                 value += digit >= prevDigit ? digit : -digit;
                 prevDigit = digit;
@@ -45,7 +71,9 @@ namespace App
             return new RomanNumber(value);
         }
 
-      
+
+
+
         public static int DigitalValue(String digit)
         {
             return digit switch
