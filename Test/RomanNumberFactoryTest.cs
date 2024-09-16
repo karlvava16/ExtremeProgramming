@@ -17,14 +17,14 @@ public class RomanNumberFactoryTest
         { "D", 500  },
         { "M", 1000 },
     });
-    
+
 
 
     [TestMethod]
     public void _CheckSymbolsTest()
     {
         Type? rnType = typeof(RomanNumberFactory);
-        MethodInfo? m1Info = rnType.GetMethod("_CheckSymbols", 
+        MethodInfo? m1Info = rnType.GetMethod("_CheckSymbols",
             BindingFlags.NonPublic | BindingFlags.Static);
 
         m1Info?.Invoke(null, ["IX"]);
@@ -48,7 +48,7 @@ public class RomanNumberFactoryTest
 
         // Assert Not Throws
         m1Info?.Invoke(null, ["IX"]);
-        
+
         var ex = Assert.ThrowsException<TargetInvocationException>(
         () => m1Info?.Invoke(null, ["IM"]),
             $"_CheckPairs 'IM' must throw FormatException"
@@ -106,57 +106,72 @@ public class RomanNumberFactoryTest
     [TestMethod]
     public void ParseTest()
     {
-        Dictionary<String, int> testCases = new()
+
+        var Assert_ThrowsException_Methods = typeof(Assert).GetMethods()
+        .Where(x => x.Name == "ThrowsException")
+        .Where(x => x.IsGenericMethod);
+
+        var Assert_ThrowsException_Func_String_method = Assert_ThrowsException_Methods.Skip(3).FirstOrDefault();
+
+        TestCase[] testCases1 = [
+            new() { Source = "N",    Value = 0 },
+            new() { Source = "I",    Value = 1 },
+            new() { Source = "II",   Value = 2 },
+            new() { Source = "III",  Value = 3 },
+            new() { Source = "IIII", Value = 4 },
+            new() { Source = "IV",   Value = 4 },
+            new() { Source = "VI",   Value = 6 },
+            new() { Source = "VII",  Value = 7 },
+            new() { Source = "VIII", Value = 8 },
+            new() { Source = "IX",   Value = 9 },
+            new() { Source = "D",    Value = 500 },
+            new() { Source = "M",    Value = 1000 },
+            new() { Source = "CM",   Value = 900 },
+            new() { Source = "MC",   Value = 1100 },
+            new() { Source = "MCM",  Value = 1900 },
+            new() { Source = "MM",   Value = 2000 },
+        ];
+
+        foreach (var testCase in testCases1)
         {
-            { "N",    0 },
-            { "I",    1 },
-            { "II",   2 },
-            { "III",  3 },
-            { "IIII", 4 },   // öèì òåñòîì ìè äîçâîëÿºìî íåîïòèìàëüíó ôîðìó ÷èñëà
-            { "IV",   4 },
-            { "VI",   6 },
-            { "VII",  7 },
-            { "VIII", 8 },
-            { "IX",   9 },
-            { "D",    500 },
-            { "M",    1000 },
-            { "CM",   900 },
-            { "MC",   1100 },
-            { "MCM",  1900 },
-            { "MM",   2000 },
-        };
-        foreach (var testCase in testCases)
-        {
-            RomanNumber rn = RomanNumberFactory.Parse(testCase.Key);
+            RomanNumber rn = RomanNumberFactory.Parse(testCase.Source);
             Assert.IsNotNull(rn);
             Assert.AreEqual(
-                testCase.Value, 
-                rn.Value, 
-                $"{testCase.Key} -> {testCase.Value}"
+                testCase.Value,
+                rn.Value,
+                $"{testCase.Source} -> {testCase.Value}"
             );
         }
-        Dictionary<String, Object[]> exTestCases = new()
+
+        var formatExceptionType = typeof(FormatException);
+        String partTemplate = "Invalid symbol '{0}' in position {1}";
+        TestCase[] exTestCases1 = [
+            new() { Source = "W",   ExceptionMessageParts = [String.Format(partTemplate, "W",  0)], ExceptionType = formatExceptionType},
+            new() { Source = "Q",   ExceptionMessageParts = [String.Format(partTemplate, "Q",  0)], ExceptionType = formatExceptionType},
+            new() { Source = "s",   ExceptionMessageParts = [String.Format(partTemplate, "s",  0)], ExceptionType = formatExceptionType},
+            new() { Source = "sX",  ExceptionMessageParts = [String.Format(partTemplate, "s",  0)], ExceptionType = formatExceptionType},
+            new() { Source = "Xd",  ExceptionMessageParts = [String.Format(partTemplate, "d",  1)], ExceptionType = formatExceptionType},
+
+        ];
+
+        foreach (var testCase in exTestCases1)
         {
-            { "W", ['W', 0] },
-            { "Q", ['Q', 0] },
-            { "s", ['s', 0] },
-            { "sX", ['s', 0] },
-            { "Xd", ['d', 1] },
-        };
-        foreach (var testCase in exTestCases)
-        {
-            var ex = Assert.ThrowsException<FormatException>(
-                () => RomanNumberFactory.Parse(testCase.Key),
-                $"Parse '{testCase.Key}' must throw FormatException"
-            );
+
+
+            dynamic? ex = Assert_ThrowsException_Func_String_method?
+                .MakeGenericMethod(testCase.ExceptionType!)
+                .Invoke(null,
+                [() => RomanNumberFactory.Parse(testCase.Source),
+                $"Parse '{testCase.Source}' must throw FormatException"]);
+
             Assert.IsTrue(
-                ex.Message.Contains(
-                    $"Invalid symbol '{testCase.Value[0]}' in position {testCase.Value[1]}"
-                ),
-                "FormatException must contain data about symbol and its position"
-                + $"testCase: '{testCase.Key}', ex.Message: '{ex.Message}'"
-            );
+                ex!.Message.Contains(
+                    testCase.ExceptionMessageParts!.First()
+                    ),
+                $"FormatException must contain '{testCase.ExceptionMessageParts!.First()}'"
+                );
         }
+
         Dictionary<String, Object[]> exTestCases2 = new()
         {
             { "IM",  ['I', 'M', 0] },
@@ -235,11 +250,11 @@ public class RomanNumberFactoryTest
 
     [TestMethod]
     public void DigitValueTest()
-    {           
+    {
         foreach (var testCase in DigitValues)
         {
             Assert.AreEqual(
-                testCase.Value, 
+                testCase.Value,
                 RomanNumberFactory.DigitValue(testCase.Key),
                 $"{testCase.Key} -> {testCase.Value}"
             );
@@ -247,8 +262,8 @@ public class RomanNumberFactoryTest
         Random random = new();
         for (int i = 0; i < 100; ++i)
         {
-            String invalidDigit = ((char) random.Next(256)).ToString();
-            if(DigitValues.ContainsKey(invalidDigit))
+            String invalidDigit = ((char)random.Next(256)).ToString();
+            if (DigitValues.ContainsKey(invalidDigit))
             {
                 --i;
                 continue;
@@ -258,7 +273,7 @@ public class RomanNumberFactoryTest
                     () => RomanNumberFactory.DigitValue(invalidDigit),
                     $"ArgumentException expected for digit = '{invalidDigit}'"
                 );
-          
+
             Assert.IsFalse(
                 String.IsNullOrEmpty(ex.Message),
                 "ArgumentException must have a message"
@@ -273,6 +288,31 @@ public class RomanNumberFactoryTest
                 $"ArgumentException message must contain '{nameof(RomanNumberFactory)}' and '{nameof(RomanNumberFactory.DigitValue)}' "
             );
         }
+
+
     }
-    
+
+    /* Д.З. Перевести тест-кейси exTestCases3-5 до форми з уніфікованим
+    * інтерфейсом TestCase. Забезпечення проходження усіх тестів.
+    * 
+    * Отримати / перевірити наявність навчальної ліцензії 
+    * https://www.jetbrains.com/shop/eform/students
+    * Заповнити форму
+    * !! вказати університетську пошту (...@student.itstep.org)
+    * Слідувати інструкціям з пошти.
+    */
+
+    class TestCase
+    {
+        public String Source { get; set; }
+        public int? Value { get; set; }
+        public Type? ExceptionType { get; set; }
+        public IEnumerable<String>? ExceptionMessageParts { get; set; }
+
+    }
+
+    //static class AssertExtension
+    //{
+    //    static Exception ThrowsNonGeneric(this Exception ex)
+    //}
 }
