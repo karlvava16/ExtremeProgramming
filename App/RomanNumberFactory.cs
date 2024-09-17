@@ -113,7 +113,7 @@
                 catch
                 {
                     throw new FormatException(
-                        $"Invalid symbol '{c}' in position {pos}");
+                        $"Parse('{input}') error: Invalid symbol '{c}' in position {pos}");
                 }
                 pos += 1;
             }
